@@ -1,7 +1,12 @@
 import React from "react";
+import HomeChat from "../components/home/Homepage";
 
 const Chat = () => {
-  return <div>chat</div>;
+  return (
+    <>
+      <HomeChat />
+    </>
+  );
 };
 
 export default Chat;

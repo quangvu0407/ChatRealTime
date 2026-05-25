@@ -20,9 +20,16 @@ api.interceptors.request.use(
   },
 );
 
-// Response interceptor - xử lý errors
+// Response interceptor - xử lý errors và extract data từ backend transform interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Backend transform interceptor trả về: { statusCode, message, data }
+    // Extract data để code gọn hơn
+    if (response.data && response.data.data !== undefined) {
+      return response.data.data;
+    }
+    return response.data;
+  },
   (error) => {
     // TODO: Thêm error handling chi tiết hơn sau
     return Promise.reject(error);

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,13 +16,13 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepo: Repository<User>,
-  ) {}
+  ) { }
 
   isEmailExist = async (email: string) => {
     const user = await this.userRepo.findOne({
       where: { email },
     });
-    // console.log(user);
+    console.log(user);
 
     return {
       exists: !!user,
@@ -41,7 +42,7 @@ export class UserService {
     console.log(isExist);
     if (isExist.exists) {
       if (isExist.isActive) {
-        throw new BadRequestException(`Email ${email} đã tồn tại`);
+        throw new ConflictException(`Email ${email} đã tồn tại`);
       }
       await this.userRepo.update(
         { email },
@@ -93,5 +94,9 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async getAllUser() {
+    return this.userRepo.find()
   }
 }

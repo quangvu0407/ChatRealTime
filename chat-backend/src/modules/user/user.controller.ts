@@ -8,13 +8,19 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtGuard } from '../auth/Guard/jwt.guard';
+import { Public } from 'src/helper/customize.guard';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
-  @Get(':UserId')
+  @Get('id/:UserId')
   getProfile(@Param('UserId') id: string) {
     return this.userService.findById(id);
+  }
+  @Public()
+  @Get('alluser')
+  getAllUser() {
+    return this.userService.getAllUser();
   }
 }
