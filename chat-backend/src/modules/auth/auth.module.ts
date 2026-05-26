@@ -1,6 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { VerificationService } from './verification.service';
+import { VerificationCode } from './entities/verification-code.entity';
+import { User } from '../user/entities/user.entity';
 import { UserModule } from '../user/user.module';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -10,10 +14,9 @@ import { LocalStrategy } from './passport/local.strategy';
 import { JwtStrategy } from './passport/jwt.strategy';
 
 @Module({
-  controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
   imports: [
-    UserModule,
+    TypeOrmModule.forFeature([VerificationCode, User]),
+    forwardRef(() => UserModule),
     PassportModule,
     ConfigModule,
     JwtModule.registerAsync({
@@ -28,5 +31,8 @@ import { JwtStrategy } from './passport/jwt.strategy';
       }),
     }),
   ],
+  controllers: [AuthController],
+  providers: [AuthService, VerificationService, LocalStrategy, JwtStrategy],
+  exports: [VerificationService],
 })
-export class AuthModule {}
+export class AuthModule { }

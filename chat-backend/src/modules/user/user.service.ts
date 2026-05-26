@@ -1,32 +1,38 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateAuthDto } from '../auth/dto/create-auth.dto';
-import { comparePasswordHelper, hashPasswordHelper } from 'src/helper/utils';
+import { hashPasswordHelper } from 'src/helper/utils';
 import { LoginAuthDto } from '../auth/dto/login-auth.dto';
+import { MailerService } from '@nestjs-modules/mailer';
+import { VerificationService } from '../auth/verification.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepo: Repository<User>,
+    private readonly mailerService: MailerService,
+    @Inject(forwardRef(() => VerificationService))
+    private readonly verificationService: VerificationService,
   ) { }
 
   isEmailExist = async (email: string) => {
     const user = await this.userRepo.findOne({
       where: { email },
     });
-    console.log(user);
+    // console.log(user);
 
     return {
       exists: !!user,
-      isActive: user?.isActive ?? false,
+      isEmailVerified: user?.isEmailVerified ?? false,
       user,
     };
   };
@@ -39,11 +45,12 @@ export class UserService {
   handleRegister = async (registerDto: CreateAuthDto) => {
     const { email, password, username } = registerDto;
     const isExist = await this.isEmailExist(email);
-    console.log(isExist);
+
     if (isExist.exists) {
-      if (isExist.isActive) {
+      if (isExist.isEmailVerified) {
         throw new ConflictException(`Email ${email} đã tồn tại`);
       }
+      // Update existing unverified user
       await this.userRepo.update(
         { email },
         {
@@ -51,11 +58,32 @@ export class UserService {
           password: await hashPasswordHelper(password),
         },
       );
+
+      // Generate verification code using VerificationService
+      const code = await this.verificationService.generateCode(
+        isExist.user!.id,
+        'email_verification',
+      );
+
+      // Send email with verification code
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Đăng ký tài khoản',
+        text: 'Đăng ký thành công',
+        template: 'register',
+        context: {
+          name: username ?? email,
+          activationCode: code,
+          year: '2026',
+        },
+      });
+
       return {
         id: isExist.user!.id,
       };
     }
 
+    // Create new user
     const hashPassword = await hashPasswordHelper(password);
     const user = this.userRepo.create({
       email,
@@ -63,6 +91,26 @@ export class UserService {
       password: hashPassword,
     });
     const savedUser = await this.userRepo.save(user);
+
+    // Generate verification code using VerificationService
+    const code = await this.verificationService.generateCode(
+      savedUser.id,
+      'email_verification',
+    );
+
+    // Send email with verification code
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Đăng ký tài khoản',
+      text: 'Đăng ký thành công',
+      template: 'register',
+      context: {
+        name: username ?? email,
+        activationCode: code,
+        year: '2026',
+      },
+    });
+
     return {
       id: savedUser.id,
     };
@@ -78,7 +126,7 @@ export class UserService {
       email: userDetail.email,
       username: userDetail.username,
       avatar: userDetail.avatar,
-      isActive: userDetail.isActive,
+      isEmailVerified: userDetail.isEmailVerified,
       createdAt: userDetail.createdAt,
     };
   };
@@ -86,7 +134,7 @@ export class UserService {
   async findById(id: string): Promise<User> {
     const user = await this.userRepo.findOne({
       where: { id },
-      select: ['id', 'email', 'username', 'avatar', 'isActive'],
+      select: ['id', 'email', 'username', 'avatar', 'isEmailVerified'],
     });
 
     if (!user) {
@@ -97,6 +145,6 @@ export class UserService {
   }
 
   async getAllUser() {
-    return this.userRepo.find()
+    return this.userRepo.find();
   }
 }

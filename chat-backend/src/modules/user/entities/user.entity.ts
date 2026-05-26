@@ -28,13 +28,10 @@ export class User {
   avatar: string;
 
   @Column({ default: false })
-  isActive: boolean;
+  isEmailVerified: boolean;
 
-  @Column({ default: null })
-  code: string;
-
-  @Column({ default: null })
-  codeExpired: Date;
+  @Column({ nullable: true })
+  lastVerificationSentAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;

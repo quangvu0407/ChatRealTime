@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../modules/user/entities/user.entity';
 import { Message } from '../modules/message/entities/message.entity';
 import { Conversation } from '../modules/conversation/entities/conversation.entity';
+import { VerificationCode } from '../modules/auth/entities/verification-code.entity';
 
 @Module({
   imports: [
@@ -17,10 +18,10 @@ import { Conversation } from '../modules/conversation/entities/conversation.enti
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DATABASE,
-      entities: [User, Message, Conversation],
+      entities: [User, Message, Conversation, VerificationCode],
       synchronize: true,
       logging: false,
     }),
   ],
 })
-export class DatabaseModule {}
+export class DatabaseModule { }
