@@ -4,3 +4,7 @@ body {
   font-family: "Inter", sans-serif;
   background: "#ffffff";
 }
+
+.dropdown-toggle::after {
+  display: none !important;
+}
