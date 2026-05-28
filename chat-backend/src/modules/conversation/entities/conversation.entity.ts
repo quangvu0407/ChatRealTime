@@ -7,9 +7,11 @@ import {
   OneToMany,
   ManyToMany,
   CreateDateColumn,
+  Index,
 } from 'typeorm';
 
 @Entity()
+@Index(['type', 'lastMessageAt'])
 export class Conversation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -19,6 +21,12 @@ export class Conversation {
 
   @Column({ default: 'group' }) // 'group' hoặc 'direct'
   type: string;
+
+  @Column({ nullable: true })
+  avatar: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastMessageAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;

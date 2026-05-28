@@ -6,6 +6,7 @@ import {
   ManyToMany,
   JoinTable,
   CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Conversation } from '../../conversation/entities/conversation.entity';
 import { Message } from 'src/modules/message/entities/message.entity';
@@ -33,8 +34,17 @@ export class User {
   @Column({ nullable: true })
   lastVerificationSentAt: Date;
 
+  @Column({ type: 'enum', enum: ['online', 'offline', 'away'], default: 'offline' })
+  status: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastSeen: Date;
+
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @OneToMany(() => Message, (message) => message.user)
   messages: Message[];

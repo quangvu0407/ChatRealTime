@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { InputGroup, Form, Badge, Dropdown } from "react-bootstrap";
-import { Search, MoreHorizontal, ChevronDown, LogOut } from "lucide-react";
+import {
+  Search,
+  MoreHorizontal,
+  ChevronDown,
+  LogOut,
+  User,
+  GamepadDirectional,
+} from "lucide-react";
 import { contacts } from "../../assets/chatData";
 import Avatar from "./Avatar";
 import userStore from "../../stores/authStore";
@@ -21,8 +28,33 @@ const colors = {
 
 export default function Sidebar({ activeId, onSelect }) {
   const [search, setSearch] = useState("");
-  const { logout, isLoading, error } = userStore();
+  const { logout } = userStore();
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
   const navigate = useNavigate();
+
+  const statusOptions = [
+    {
+      label: "Online",
+      icon: "🟢",
+      color: "#4ade80",
+    },
+    {
+      label: "Offline",
+      icon: "⚪",
+      color: "#9ca3af",
+    },
+    {
+      label: "Away",
+      icon: "🌙",
+      color: "#facc15",
+    },
+    {
+      label: "Do not disturb",
+      icon: "⛔",
+      color: "#ef4444",
+    },
+  ];
+  const [status, setStatus] = useState(statusOptions[0]);
 
   const filtered = contacts.filter(
     (c) => search === "" || c.name.toLowerCase().includes(search.toLowerCase()),
@@ -34,6 +66,9 @@ export default function Sidebar({ activeId, onSelect }) {
     navigate("/");
   };
 
+  const handleMenuStatus = () => {
+    setShowStatusMenu(!showStatusMenu);
+  };
   return (
     <div
       style={{
@@ -158,7 +193,7 @@ export default function Sidebar({ activeId, onSelect }) {
               width: 8,
               height: 8,
               borderRadius: "50%",
-              background: colors.accent,
+              background: status.color,
               border: `1.5px solid ${colors.bg}`,
             }}
           />
@@ -174,7 +209,7 @@ export default function Sidebar({ activeId, onSelect }) {
               fontFamily: "monospace",
             }}
           >
-            Active now
+            {status.icon} {status.label}
           </div>
         </div>
         <Dropdown drop="up">
@@ -198,18 +233,68 @@ export default function Sidebar({ activeId, onSelect }) {
               boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
             }}
           >
+            <div className="position-relative">
+              <div className="custom-dropdown-item">
+                <div className="d-flex align-items-center justify-content-between w-100">
+                  <div
+                    className="d-flex align-items-center gap-2"
+                    onClick={handleMenuStatus}
+                  >
+                    <GamepadDirectional size={14} />
+                    Trạng thái
+                  </div>
+
+                  <span>›</span>
+                </div>
+              </div>
+
+              {showStatusMenu && (
+                <div
+                  style={{
+                    position: "absolute",
+                    left: "100%",
+                    top: -5,
+                    marginLeft: 6,
+                    background: "#1e1c19",
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: 8,
+                    minWidth: 150,
+                    padding: 4,
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+                    zIndex: 999,
+                  }}
+                  onClick={handleMenuStatus}
+                >
+                  {statusOptions.map((item) => (
+                    <Dropdown.Item
+                      key={item.label}
+                      className="custom-dropdown-item"
+                      onClick={() => {
+                        setStatus(item);
+                      }}
+                    >
+                      {item.icon} {item.label}
+                    </Dropdown.Item>
+                  ))}
+                </div>
+              )}
+            </div>
             <Dropdown.Item
+              className="custom-dropdown-item"
               onClick={handleLogOut}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                fontSize: 13,
-                color: "#e05c5c",
-                borderRadius: 6,
-                padding: "8px 12px",
-                background: "transparent",
-              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "#2a1a1a")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "transparent")
+              }
+            >
+              <User size={14} />
+              Cá nhân
+            </Dropdown.Item>
+            <Dropdown.Item
+              className="custom-dropdown-item"
+              onClick={handleLogOut}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.background = "#2a1a1a")
               }

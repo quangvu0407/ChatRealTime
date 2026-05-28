@@ -8,3 +8,20 @@ body {
 .dropdown-toggle::after {
   display: none !important;
 }
+
+.custom-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #e05c5c !important;
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: transparent !important;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+.custom-dropdown-item:hover {
+  background: #2a1a1a !important;
+}

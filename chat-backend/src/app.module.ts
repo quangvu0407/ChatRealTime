@@ -14,6 +14,9 @@ import { TransformInterceptor } from './core/transform.intercepter';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 import { join } from 'path';
+import { FriendModule } from './modules/friend/friend.module';
+import { FriendRequestModule } from './modules/friend-request/friend-request.module';
+import { ConverPaticipantModule } from './modules/conver-paticipant/conver-paticipant.module';
 
 @Module({
   imports: [
@@ -51,6 +54,9 @@ import { join } from 'path';
       }),
       inject: [ConfigService],
     }),
+    FriendModule,
+    FriendRequestModule,
+    ConverPaticipantModule,
   ],
   controllers: [AppController],
   providers: [

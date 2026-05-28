@@ -6,6 +6,7 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
+  UpdateDateColumn,
   Index,
   JoinColumn,
 } from 'typeorm';
@@ -19,8 +20,27 @@ export class Message {
   @Column('text')
   content: string;
 
+  @Column({ type: 'enum', enum: ['text', 'image', 'file', 'video'], default: 'text' })
+  type: string;
+
+  @Column({ nullable: true })
+  attachmentUrl: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  replyToId: string;
+
+  @ManyToOne(() => Message, { nullable: true })
+  @JoinColumn({ name: 'replyToId' })
+  replyTo: Message;
+
+  @Column({ default: false })
+  isEdited: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.messages)
   @JoinColumn({ name: 'userId' })
