@@ -1,34 +1,53 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Delete,
+  Patch,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+  ParseBoolPipe,
+} from '@nestjs/common';
 import { FriendService } from './friend.service';
-import { CreateFriendDto } from './dto/create-friend.dto';
-import { UpdateFriendDto } from './dto/update-friend.dto';
+import { JwtGuard } from '../auth/Guard/jwt.guard';
+import { UpdateNicknameDto } from './dto/update-nickname.dto';
+import { UpdateFavoriteDto } from './dto/update-favorite.dto';
 
-@Controller('friend')
+@UseGuards(JwtGuard)
+@Controller('friends')
 export class FriendController {
-  constructor(private readonly friendService: FriendService) {}
-
-  @Post()
-  create(@Body() createFriendDto: CreateFriendDto) {
-    return this.friendService.create(createFriendDto);
-  }
+  constructor(private readonly friendService: FriendService) { }
 
   @Get()
-  findAll() {
-    return this.friendService.findAll();
+  getFriends(
+    @Query('favorite', new ParseBoolPipe({ optional: true })) favorite: boolean,
+    @Request() req,
+  ) {
+    return this.friendService.getFriends(req.user.id, favorite);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.friendService.findOne(+id);
+  @Delete(':friendId')
+  removeFriend(@Param('friendId') friendId: string, @Request() req) {
+    return this.friendService.removeFriend(req.user.id, friendId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFriendDto: UpdateFriendDto) {
-    return this.friendService.update(+id, updateFriendDto);
+  @Patch(':friendId/nickname')
+  updateNickname(
+    @Param('friendId') friendId: string,
+    @Body() dto: UpdateNicknameDto,
+    @Request() req,
+  ) {
+    return this.friendService.updateNickname(req.user.id, friendId, dto.nickname);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.friendService.remove(+id);
+  @Patch(':friendId/favorite')
+  updateFavorite(
+    @Param('friendId') friendId: string,
+    @Body() dto: UpdateFavoriteDto,
+    @Request() req,
+  ) {
+    return this.friendService.updateFavorite(req.user.id, friendId, dto.isFavorite);
   }
 }

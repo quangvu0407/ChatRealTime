@@ -5,14 +5,16 @@ import { User } from './entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { VerificationCode } from '../auth/entities/verification-code.entity';
+import { Friend } from '../friend/entities/friend.entity';
+import { FriendRequest } from '../friend-request/entities/friend-request.entity';
 
 @Module({
   controllers: [UserController],
   providers: [UserService],
   imports: [
-    TypeOrmModule.forFeature([User, VerificationCode]),
+    TypeOrmModule.forFeature([User, VerificationCode, Friend, FriendRequest]),
     forwardRef(() => AuthModule),
   ],
-  exports: [UserService],
+  exports: [UserService, TypeOrmModule],
 })
 export class UserModule { }

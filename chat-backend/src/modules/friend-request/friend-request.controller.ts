@@ -1,34 +1,49 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { FriendRequestService } from './friend-request.service';
 import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
-import { UpdateFriendRequestDto } from './dto/update-friend-request.dto';
+import { JwtGuard } from '../auth/Guard/jwt.guard';
 
-@Controller('friend-request')
+@UseGuards(JwtGuard)
+@Controller('friend-requests')
 export class FriendRequestController {
-  constructor(private readonly friendRequestService: FriendRequestService) {}
+  constructor(private readonly friendRequestService: FriendRequestService) { }
 
   @Post()
-  create(@Body() createFriendRequestDto: CreateFriendRequestDto) {
-    return this.friendRequestService.create(createFriendRequestDto);
+  create(@Body() dto: CreateFriendRequestDto, @Request() req) {
+    return this.friendRequestService.createFriendRequest(req.user.id, dto);
   }
 
-  @Get()
-  findAll() {
-    return this.friendRequestService.findAll();
+  @Get('received')
+  getReceived(@Request() req) {
+    return this.friendRequestService.getReceivedRequests(req.user.id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.friendRequestService.findOne(+id);
+  @Get('sent')
+  getSent(@Request() req) {
+    return this.friendRequestService.getSentRequests(req.user.id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFriendRequestDto: UpdateFriendRequestDto) {
-    return this.friendRequestService.update(+id, updateFriendRequestDto);
+  @Patch(':id/accept')
+  accept(@Param('id') id: string, @Request() req) {
+    return this.friendRequestService.acceptFriendRequest(id, req.user.id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.friendRequestService.remove(+id);
+  @Patch(':id/reject')
+  reject(@Param('id') id: string, @Request() req) {
+    return this.friendRequestService.rejectFriendRequest(id, req.user.id);
+  }
+
+  @Patch(':id/cancel')
+  cancel(@Param('id') id: string, @Request() req) {
+    return this.friendRequestService.cancelFriendRequest(id, req.user.id);
   }
 }

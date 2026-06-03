@@ -9,10 +9,18 @@ const api = axios.create({
   },
 });
 
-// Request interceptor - sẽ thêm token sau
+// Request interceptor - inject JWT token
 api.interceptors.request.use(
   (config) => {
-    // TODO: Thêm token injection ở task 16
+    const authStorage = localStorage.getItem("auth-storage");
+    if (authStorage) {
+      try {
+        const { state } = JSON.parse(authStorage);
+        if (state?.accessToken) {
+          config.headers.Authorization = `Bearer ${state.accessToken}`;
+        }
+      } catch (_) { }
+    }
     return config;
   },
   (error) => {

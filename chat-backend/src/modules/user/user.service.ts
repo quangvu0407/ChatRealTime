@@ -13,12 +13,19 @@ import { hashPasswordHelper } from 'src/helper/utils';
 import { LoginAuthDto } from '../auth/dto/login-auth.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { VerificationService } from '../auth/verification.service';
+import { UserSearchResultDto } from './dto/user-search-result.dto';
+import { Friend } from '../friend/entities/friend.entity';
+import { FriendRequest } from '../friend-request/entities/friend-request.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepo: Repository<User>,
+    @InjectRepository(Friend)
+    private friendRepo: Repository<Friend>,
+    @InjectRepository(FriendRequest)
+    private friendRequestRepo: Repository<FriendRequest>,
     private readonly mailerService: MailerService,
     @Inject(forwardRef(() => VerificationService))
     private readonly verificationService: VerificationService,
@@ -146,5 +153,62 @@ export class UserService {
 
   async getAllUser() {
     return this.userRepo.find();
+  }
+
+  async searchUsers(
+    keyword: string,
+    requesterId: string,
+  ): Promise<UserSearchResultDto[]> {
+    const users = await this.userRepo
+      .createQueryBuilder('user')
+      .select(['user.id', 'user.username', 'user.email', 'user.avatar'])
+      .where('LOWER(user.username) LIKE LOWER(:keyword)')
+      .andWhere('user.id != :requesterId')
+      .andWhere('user.isEmailVerified = :verified', { verified: true })
+      .setParameter('keyword', `%${keyword}%`)
+      .setParameter('requesterId', requesterId)
+      .limit(20)
+      .getMany();
+
+    const results: UserSearchResultDto[] = [];
+
+    for (const user of users) {
+      const friend = await this.friendRepo.findOne({
+        where: [
+          { userId: requesterId, friendId: user.id },
+          { userId: user.id, friendId: requesterId },
+        ],
+      });
+
+      const pendingRequest = await this.friendRequestRepo.findOne({
+        where: [
+          { senderId: requesterId, receiverId: user.id, status: 'pending' },
+          { senderId: user.id, receiverId: requesterId, status: 'pending' },
+        ],
+      });
+
+      let relationshipStatus: UserSearchResultDto['relationshipStatus'] =
+        'none';
+
+      if (friend) {
+        relationshipStatus = 'friend';
+      } else if (pendingRequest) {
+        if (pendingRequest.senderId === requesterId) {
+          relationshipStatus = 'pending_sent';
+        } else {
+          relationshipStatus = 'pending_received';
+        }
+      }
+
+      results.push({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        relationshipStatus,
+      });
+    }
+
+    return results;
   }
 }

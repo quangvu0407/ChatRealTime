@@ -5,6 +5,8 @@ import { User } from '../modules/user/entities/user.entity';
 import { Message } from '../modules/message/entities/message.entity';
 import { Conversation } from '../modules/conversation/entities/conversation.entity';
 import { VerificationCode } from '../modules/auth/entities/verification-code.entity';
+import { Friend } from 'src/modules/friend/entities/friend.entity';
+import { FriendRequest } from 'src/modules/friend-request/entities/friend-request.entity';
 
 @Module({
   imports: [
@@ -18,10 +20,17 @@ import { VerificationCode } from '../modules/auth/entities/verification-code.ent
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DATABASE,
-      entities: [User, Message, Conversation, VerificationCode],
+      entities: [
+        User,
+        Message,
+        Conversation,
+        VerificationCode,
+        Friend,
+        FriendRequest,
+      ],
       synchronize: true,
       logging: false,
     }),
   ],
 })
-export class DatabaseModule { }
+export class DatabaseModule {}

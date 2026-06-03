@@ -33,8 +33,8 @@ export class Friend {
   @Column({ default: false })
   isFavorite: boolean;
 
-  @Column({ nullable: true })
-  nickname: string;
+  @Column({ type: 'varchar', nullable: true, default: null })
+  nickname: string | null;
 
   @CreateDateColumn()
   createdAt: Date;
